@@ -2,11 +2,14 @@ module github.com/kyawphyothu/momo
 
 go 1.25.1
 
-require charm.land/bubbletea/v2 v2.0.0-rc.2
+require (
+	charm.land/bubbletea/v2 v2.0.0-rc.2
+	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251106192539-4b304240aab7
+	github.com/charmbracelet/ultraviolet v0.0.0-20251116181749-377898bcce38
+)
 
 require (
 	github.com/charmbracelet/colorprofile v0.3.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20251116181749-377898bcce38 // indirect
 	github.com/charmbracelet/x/ansi v0.11.1 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect

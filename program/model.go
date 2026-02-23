@@ -5,10 +5,14 @@ import (
 )
 
 type Model struct {
+	OverlayOpen bool
+	InputText   string
+	Width       int
+	Height      int
 }
 
 func InitialModel() Model {
-	return Model{}
+	return Model{Width: 80, Height: 24}
 }
 
 func (m Model) Init() tea.Cmd {
