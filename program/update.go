@@ -12,29 +12,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		if m.OverlayOpen {
-			switch msg.String() {
-			case "esc", "enter":
-				m.OverlayOpen = false
-				return m, nil
-			case "backspace":
-				if len(m.InputText) > 0 {
-					m.InputText = m.InputText[:len(m.InputText)-1]
-				}
-				return m, nil
-			default:
-				if k := msg.Key(); k.Text != "" {
-					m.InputText += k.Text
-				}
-				return m, nil
-			}
+		if m.URLOverlayOpen {
+			return m.handleURLOverlay(msg)
 		}
 
 		switch msg.String() {
 		case "q":
 			return m, tea.Quit
 		case "l":
-			m.OverlayOpen = true
+			m.URLOverlayOpen = true
+			m.URLTextInput.Focus()
 			return m, nil
 		default:
 			return m, nil
@@ -42,4 +29,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+func (m Model) handleURLOverlay(msg tea.KeyMsg) (Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc", "enter":
+		m.URLOverlayOpen = false
+		m.URLTextInput.Blur()
+		return m, nil
+	}
+
+	var cmd tea.Cmd
+	m.URLTextInput, cmd = m.URLTextInput.Update(msg)
+	return m, cmd
 }

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	lipgloss "charm.land/lipgloss/v2"
 )
@@ -20,8 +21,8 @@ func (m Model) View() tea.View {
 
 	mainContent := lipgloss.NewStyle().Foreground(Primary).Render("Hello, World!")
 
-	if m.OverlayOpen {
-		overlayContent := renderURLOverlay()
+	if m.URLOverlayOpen {
+		overlayContent := renderURLOverlay(m.URLTextInput)
 		overlayLayer := lipgloss.
 			NewLayer(overlayContent).
 			X((m.Width - URLOverlayWidth) / 2).
@@ -47,15 +48,29 @@ func (m Model) View() tea.View {
 	return v
 }
 
-func renderURLOverlay() string {
-	var content strings.Builder
-	overlayText := "This is overlay text lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+func renderURLOverlay(textInput textinput.Model) string {
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(Primary).
+		Padding(0, 1, 0, 1)
+	labelStyle := lipgloss.NewStyle().
+		Foreground(Highlight).
+		Bold(true).
+		PaddingTop(0).
+		PaddingBottom(0).
+		PaddingLeft(1).
+		PaddingRight(1)
+	b := NewDefaultBoxWithLabel(boxStyle, labelStyle)
+	return b.Render("YouTubeURL", textInput.View(), URLOverlayWidth)
 
-	content.WriteString(overlayText)
+	// const body = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam imperdiet ultrices felis, et condimentum odio fringilla et. Etiam porttitor volutpat diam non gravida. Donec et condimentum nulla. Sed consectetur viverra fermentum. Pellentesque eget metus ut felis faucibus consectetur nec ac mi."
 
-	style := lipgloss.NewStyle().Foreground(Primary).Width(URLOverlayWidth)
+	// b := NewDefaultBoxWithLabel()
+	// return b.Render("Title", body, 40)
 
-	return style.Render(content.String())
+	// lipgloss.NewStyle().BorderTitle("Hello")
+
+	// return style.Render(content.String())
 }
 
 func renderSmallWindowScreen(width, height int) string {

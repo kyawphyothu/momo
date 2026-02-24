@@ -4,6 +4,7 @@ const (
 	minWindowWidth  = 80
 	minWindowHeight = 24
 
-	URLOverlayYAxis = 5
-	URLOverlayWidth = 45
+	URLOverlayYAxis  = 5
+	URLOverlayHeight = 3
+	URLOverlayWidth  = 45
 )
