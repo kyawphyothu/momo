@@ -11,6 +11,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Height = msg.Height
 		return m, nil
 
+	case tea.PasteMsg:
+		return m.handlePaste(msg)
+
 	case tea.KeyMsg:
 		if m.URLOverlayOpen {
 			return m.handleURLOverlay(msg)
@@ -29,6 +32,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+func (m Model) handlePaste(msg tea.PasteMsg) (Model, tea.Cmd) {
+	if m.URLOverlayOpen {
+		return m.handlePasteURLOverlay(msg)
+	}
+
+	return m, nil
+}
+func (m Model) handlePasteURLOverlay(msg tea.PasteMsg) (Model, tea.Cmd) {
+	var cmd tea.Cmd
+	m.URLTextInput, cmd = m.URLTextInput.Update(msg)
+	return m, cmd
 }
 
 func (m Model) handleURLOverlay(msg tea.KeyMsg) (Model, tea.Cmd) {
