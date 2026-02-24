@@ -12,11 +12,7 @@ import (
 
 func (m Model) View() tea.View {
 	if !IsWindowSizeValid(m.Width, m.Height) {
-		v := tea.NewView(renderSmallWindowScreen(m.Width, m.Height))
-		v.AltScreen = true
-		v.BackgroundColor = Background
-		v.ForegroundColor = Text
-		return v
+		return newView(renderSmallWindowScreen(m.Width, m.Height))
 	}
 
 	mainContent := lipgloss.NewStyle().Foreground(Primary).Render("Hello, World!")
@@ -29,19 +25,23 @@ func (m Model) View() tea.View {
 			Y(URLOverlayYAxis).
 			Z(1)
 
-		mainLayer := lipgloss.NewLayer(mainContent).X(0).Y(0).Z(0)
+		mainLayer := lipgloss.
+			NewLayer(mainContent).
+			X(0).
+			Y(0).
+			Z(0)
 
 		canvas := lipgloss.NewCanvas(mainLayer, overlayLayer)
 		finalContent := canvas.Render()
 
-		v := tea.NewView(finalContent)
-		v.AltScreen = true
-		v.BackgroundColor = Background
-		v.ForegroundColor = Text
-		return v
+		return newView(finalContent)
 	}
 
-	v := tea.NewView(mainContent)
+	return newView(mainContent)
+}
+
+func newView(content string) tea.View {
+	v := tea.NewView(content)
 	v.AltScreen = true
 	v.BackgroundColor = Background
 	v.ForegroundColor = Text
@@ -49,28 +49,18 @@ func (m Model) View() tea.View {
 }
 
 func renderURLOverlay(textInput textinput.Model) string {
-	boxStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(Primary).
-		Padding(0, 1, 0, 1)
-	labelStyle := lipgloss.NewStyle().
-		Foreground(Highlight).
-		Bold(true).
-		PaddingTop(0).
-		PaddingBottom(0).
-		PaddingLeft(1).
-		PaddingRight(1)
-	b := NewDefaultBoxWithLabel(boxStyle, labelStyle)
+	b := NewBoxWithLabel(URLOverlayBoxStyle, URLOverlayLabelStyle)
 	return b.Render("YouTubeURL", textInput.View(), URLOverlayWidth)
+}
 
-	// const body = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam imperdiet ultrices felis, et condimentum odio fringilla et. Etiam porttitor volutpat diam non gravida. Donec et condimentum nulla. Sed consectetur viverra fermentum. Pellentesque eget metus ut felis faucibus consectetur nec ac mi."
-
-	// b := NewDefaultBoxWithLabel()
-	// return b.Render("Title", body, 40)
-
-	// lipgloss.NewStyle().BorderTitle("Hello")
-
-	// return style.Render(content.String())
+func renderDimension(label string, current, minimum int) string {
+	muted := lipgloss.NewStyle().Foreground(Muted)
+	color := Success
+	if current < minimum {
+		color = Error
+	}
+	value := lipgloss.NewStyle().Foreground(color).Render(strconv.Itoa(current))
+	return muted.Render(label+": ") + value + muted.Render(fmt.Sprintf("/%d", minimum))
 }
 
 func renderSmallWindowScreen(width, height int) string {
@@ -80,26 +70,9 @@ func renderSmallWindowScreen(width, height int) string {
 	content.WriteString("\n")
 	content.WriteString(lipgloss.NewStyle().Foreground(Muted).Bold(false).Render("Please resize your window to continue"))
 	content.WriteString("\n")
-	currentWidth := strconv.Itoa(width)
-	if width < minWindowWidth {
-		currentWidth = lipgloss.NewStyle().Foreground(Error).Bold(false).Render(currentWidth)
-	} else {
-		currentWidth = lipgloss.NewStyle().Foreground(Success).Bold(false).Render(currentWidth)
-	}
-	muted := lipgloss.NewStyle().Foreground(Muted).Bold(false)
-	content.WriteString(muted.Render("Width: "))
-	content.WriteString(currentWidth)
-	content.WriteString(muted.Render(fmt.Sprintf("/%d", minWindowWidth)))
+	content.WriteString(renderDimension("Width", width, minWindowWidth))
 	content.WriteString("\n")
-	currentHeight := strconv.Itoa(height)
-	if height < minWindowHeight {
-		currentHeight = lipgloss.NewStyle().Foreground(Error).Bold(false).Render(currentHeight)
-	} else {
-		currentHeight = lipgloss.NewStyle().Foreground(Success).Bold(false).Render(currentHeight)
-	}
-	content.WriteString(muted.Render("Height: "))
-	content.WriteString(currentHeight)
-	content.WriteString(muted.Render(fmt.Sprintf("/%d", minWindowHeight)))
+	content.WriteString(renderDimension("Height", height, minWindowHeight))
 	content.WriteString("\n")
 
 	style := lipgloss.NewStyle().

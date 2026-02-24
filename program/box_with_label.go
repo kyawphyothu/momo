@@ -11,7 +11,7 @@ type BoxWithLabel struct {
 	LabelStyle lipgloss.Style
 }
 
-func NewDefaultBoxWithLabel(BoxStyle lipgloss.Style, LabelStyle lipgloss.Style) BoxWithLabel {
+func NewBoxWithLabel(BoxStyle lipgloss.Style, LabelStyle lipgloss.Style) BoxWithLabel {
 	return BoxWithLabel{BoxStyle: BoxStyle, LabelStyle: LabelStyle}
 }
 
@@ -41,11 +41,4 @@ func (b BoxWithLabel) Render(label, content string, width int) string {
 
 	// Stack the pieces
 	return top + "\n" + bottom
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

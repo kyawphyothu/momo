@@ -21,4 +21,19 @@ var (
 	Success = lipgloss.Color("#00FF00")
 	// Highlight is the highlight color ( #2ED6A3).
 	Highlight = lipgloss.Color("#2ED6A3")
+
+	// URLOverlayBoxStyle defines the visual style of the URL overlay container.
+	URLOverlayBoxStyle = lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(Primary).
+				Padding(0, 1, 0, 1)
+
+	// URLOverlayLabelStyle defines the visual style of the URL overlay label.
+	URLOverlayLabelStyle = lipgloss.NewStyle().
+				Foreground(Highlight).
+				Bold(true).
+				PaddingTop(0).
+				PaddingBottom(0).
+				PaddingLeft(1).
+				PaddingRight(1)
 )
