@@ -15,7 +15,23 @@ func (m Model) View() tea.View {
 		return newView(renderSmallWindowScreen(m.Width, m.Height))
 	}
 
-	mainContent := lipgloss.NewStyle().Foreground(Primary).Render("Hello, World!")
+	if m.IsRunningYtdlpInstall {
+		return newView(lipgloss.NewStyle().Foreground(Primary).Render("Checking for yt-dlp..."))
+	}
+
+	if m.YtdlpInstallErr != nil {
+		errMsg := lipgloss.NewStyle().Foreground(Error).Render("yt-dlp install failed: " + m.YtdlpInstallErr.Error())
+		return newView(errMsg)
+	}
+
+	var mainContent string
+	if m.FormatsLoading {
+		mainContent = m.Spinner.View()
+	} else if m.FormatsLoaded {
+		mainContent = m.FormatsViewport.View()
+	} else {
+		mainContent = lipgloss.NewStyle().Foreground(Primary).Render("Hello, World!")
+	}
 
 	if m.URLOverlayOpen {
 		overlayContent := renderURLOverlay(m.URLTextInput)
