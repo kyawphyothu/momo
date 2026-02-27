@@ -26,7 +26,8 @@ func (m Model) View() tea.View {
 
 	var mainContent string
 	if m.FormatsLoading {
-		mainContent = m.Spinner.View()
+		mainContent = m.Spinner.View() + " " + lipgloss.NewStyle().Foreground(Primary).Render("Dancing Machine Momo on standby...")
+		mainContent = lipgloss.NewStyle().Width(m.Width).Height(m.Height).Align(lipgloss.Center, lipgloss.Center).Render(mainContent)
 	} else if m.FormatsLoaded {
 		mainContent = m.FormatsTable.View()
 	} else if m.FormatsErr != nil {
