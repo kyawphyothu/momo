@@ -15,7 +15,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Width = msg.Width
 		m.Height = msg.Height
 		m.FormatsTable.SetWidth(msg.Width)
-		m.FormatsTable.SetHeight(msg.Height - 2)
+		m.FormatsTable.SetHeight(msg.Height - TitleHeight - 2)
 		return m, nil
 
 	case tea.PasteMsg:

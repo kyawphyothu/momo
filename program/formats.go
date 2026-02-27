@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"charm.land/bubbles/v2/table"
+	"github.com/kyawphyothu/momo/table"
 	"github.com/lrstanley/go-ytdlp"
 	"github.com/mattn/go-runewidth"
 )
@@ -107,18 +107,12 @@ func formatVCodec(f *ytdlp.ExtractedFormat) string {
 	if f.VCodec != nil && *f.VCodec != "" {
 		return *f.VCodec
 	}
-	if f.ACodec != nil && *f.ACodec != "" {
-		return "audio only"
-	}
 	return ""
 }
 
 func formatACodec(f *ytdlp.ExtractedFormat) string {
 	if f.ACodec != nil && *f.ACodec != "" {
 		return *f.ACodec
-	}
-	if f.VCodec != nil && *f.VCodec != "" {
-		return "video only"
 	}
 	return ""
 }
@@ -138,7 +132,13 @@ func formatMoreInfo(note, lang *string) string {
 // Call this before SetRows when displaying the table.
 func formatFormatsRowsForDisplay(rows []table.Row) []table.Row {
 	rightAlignCols := []struct{ idx, width int }{
-		{3, 4}, {4, 3}, {5, 10}, {6, 6}, {9, 4}, {11, 6}, {12, 6},
+		{3, FormatsTableFPSWidth},
+		{4, FormatsTableCHWidth},
+		{5, FormatsTableSIZEWidth},
+		{6, FormatsTableTBRWidth},
+		{9, FormatsTableVBRWidth},
+		{11, FormatsTableABRWidth},
+		{12, FormatsTableASRWidth},
 	}
 	out := make([]table.Row, len(rows))
 	for i, row := range rows {

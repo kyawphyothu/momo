@@ -2,10 +2,10 @@ package program
 
 import (
 	"charm.land/bubbles/v2/spinner"
-	"charm.land/bubbles/v2/table"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	lipgloss "charm.land/lipgloss/v2"
+	"github.com/kyawphyothu/momo/table"
 )
 
 type Model struct {
@@ -37,38 +37,39 @@ func InitialModel() Model {
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
 	columns := []table.Column{
-		{Title: "ID", Width: 6},
-		{Title: "EXT", Width: 6},
-		{Title: "RES", Width: 12},
-		{Title: rightAlign("FPS", 4), Width: 4},
-		{Title: rightAlign("CH", 3), Width: 3},
-		{Title: rightAlign("SIZE", 10), Width: 10},
-		{Title: rightAlign("TBR", 6), Width: 6},
-		{Title: "PROTO", Width: 8},
-		{Title: "VCODEC", Width: 12},
-		{Title: rightAlign("VBR", 6), Width: 6},
-		{Title: "ACODEC", Width: 12},
-		{Title: rightAlign("ABR", 6), Width: 6},
-		{Title: rightAlign("ASR", 6), Width: 6},
-		{Title: "MORE INFO", Width: 18},
+		{Title: "ID", Width: FormatsTableIDWidth},
+		{Title: "EXT", Width: FormatsTableEXTWidth},
+		{Title: "RES", Width: FormatsTableRESWidth},
+		{Title: rightAlign("FPS", FormatsTableFPSWidth), Width: FormatsTableFPSWidth},
+		{Title: rightAlign("CH", FormatsTableCHWidth), Width: FormatsTableCHWidth},
+		{Title: rightAlign("SIZE", FormatsTableSIZEWidth), Width: FormatsTableSIZEWidth},
+		{Title: rightAlign("TBR", FormatsTableTBRWidth), Width: FormatsTableTBRWidth},
+		{Title: "PROTO", Width: FormatsTablePROTOWidth},
+		{Title: "VCODEC", Width: FormatsTableVCODECWidth},
+		{Title: rightAlign("VBR", FormatsTableVBRWidth), Width: FormatsTableVBRWidth},
+		{Title: "ACODEC", Width: FormatsTableACODECWidth},
+		{Title: rightAlign("ABR", FormatsTableABRWidth), Width: FormatsTableABRWidth},
+		{Title: rightAlign("ASR", FormatsTableASRWidth), Width: FormatsTableASRWidth},
+		{Title: "MORE INFO", Width: FormatsTableMOREINFOWidth},
 	}
 
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithFocused(true),
-		table.WithHeight(15),
-		table.WithWidth(115),
+		table.WithHeight(FormatsTableHeight),
+		table.WithWidth(FormatsTableWidth),
 	)
 	tableStyle := table.DefaultStyles()
 	tableStyle.Header = tableStyle.Header.
 		Foreground(Primary).
+		Background(Background).
 		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(Border).
+		BorderForeground(Text).
 		BorderBottom(true).
 		Bold(true)
 	tableStyle.Selected = tableStyle.Selected.
 		Foreground(Text).
-		Background(Primary).
+		Background(Highlight).
 		Bold(true)
 	t.SetStyles(tableStyle)
 

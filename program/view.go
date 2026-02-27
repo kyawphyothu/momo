@@ -15,6 +15,8 @@ func (m Model) View() tea.View {
 		return newView(renderSmallWindowScreen(m.Width, m.Height))
 	}
 
+	titleContent := renderTitle(m.Width)
+
 	if m.IsRunningYtdlpInstall {
 		return newView(lipgloss.NewStyle().Foreground(Primary).Render("Checking for yt-dlp..."))
 	}
@@ -27,7 +29,7 @@ func (m Model) View() tea.View {
 	var mainContent string
 	if m.FormatsLoading {
 		mainContent = m.Spinner.View() + " " + lipgloss.NewStyle().Foreground(Primary).Render("Dancing Machine Momo on standby...")
-		mainContent = lipgloss.NewStyle().Width(m.Width).Height(m.Height).Align(lipgloss.Center, lipgloss.Center).Render(mainContent)
+		mainContent = lipgloss.NewStyle().Width(m.Width).Height(m.Height-TitleHeight-2).Align(lipgloss.Center, lipgloss.Center).Render(mainContent)
 	} else if m.FormatsLoaded {
 		mainContent = m.FormatsTable.View()
 	} else if m.FormatsErr != nil {
@@ -35,6 +37,15 @@ func (m Model) View() tea.View {
 	} else {
 		mainContent = lipgloss.NewStyle().Foreground(Primary).Render("Hello, World!")
 	}
+
+	mainContent = lipgloss.NewStyle().
+		Width(m.Width).
+		Height(m.Height - TitleHeight).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(Border).
+		Render(mainContent)
+
+	mainContent = lipgloss.JoinVertical(lipgloss.Top, titleContent, mainContent)
 
 	if m.URLOverlayOpen {
 		overlayContent := renderURLOverlay(m.URLTextInput)
@@ -65,6 +76,21 @@ func newView(content string) tea.View {
 	v.BackgroundColor = Background
 	v.ForegroundColor = Text
 	return v
+}
+
+func renderTitle(width int) string {
+	titleContent := ` ▄    ▄
+ ██  ██  ▄▄▄   ▄▄▄▄▄   ▄▄▄
+ █ ██ █ █▀ ▀█  █ █ █  █▀ ▀█
+ █ ▀▀ █ █   █  █ █ █  █   █
+ █    █ ▀█▄█▀  █ █ █  ▀█▄█▀`
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(TitleHeight).
+		Foreground(Primary).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(Border).
+		Render(titleContent)
 }
 
 func renderURLOverlay(textInput textinput.Model) string {
