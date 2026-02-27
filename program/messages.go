@@ -1,8 +1,10 @@
 package program
 
+import "github.com/lrstanley/go-ytdlp"
+
 type FormatsLoadedMsg struct {
-	Table string // raw table text from yt-dlp
-	Err   error
+	Formats []*ytdlp.ExtractedFormat
+	Err     error
 }
 
 // YtdlpInstallDoneMsg is sent when yt-dlp install completes (success or error).

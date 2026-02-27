@@ -22,13 +22,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handlePaste(msg)
 
 	case FormatsLoadedMsg:
+		m.FormatsLoading = false
 		if msg.Err != nil {
-			// handle error (e.g. store in model, show in view)
+			m.FormatsErr = msg.Err
 			return m, nil
 		}
-		rows := formatFormatsRowsForDisplay(parseFormatsTable(msg.Table))
 		m.FormatsLoaded = true
-		m.FormatsLoading = false
+		rows := formatFormatsRowsForDisplay(formatsToRows(msg.Formats))
 		m.FormatsTable.SetRows(rows)
 		return m, nil
 

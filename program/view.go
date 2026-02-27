@@ -29,6 +29,8 @@ func (m Model) View() tea.View {
 		mainContent = m.Spinner.View()
 	} else if m.FormatsLoaded {
 		mainContent = m.FormatsTable.View()
+	} else if m.FormatsErr != nil {
+		mainContent = lipgloss.NewStyle().Foreground(Error).Render("Formats loading failed: " + m.FormatsErr.Error())
 	} else {
 		mainContent = lipgloss.NewStyle().Foreground(Primary).Render("Hello, World!")
 	}

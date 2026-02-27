@@ -1,262 +1,181 @@
 package program
 
 import (
-	"os"
-	"reflect"
 	"testing"
 
-	"charm.land/bubbles/v2/table"
+	"github.com/lrstanley/go-ytdlp"
 )
 
-func TestParseFormatsTable(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected []table.Row
-	}{
-		{
-			name:     "empty string returns nil",
-			input:    "",
-			expected: nil,
-		},
-		{
-			name:     "single line returns nil",
-			input:    "ID  EXT  RES",
-			expected: nil,
-		},
-		{
-			name: "only header and separator returns nil",
-			input: `ID  EXT   RESOLUTION FPS CH |   FILESIZE    TBR PROTO | VCODEC  VBR ACODEC  ABR ASR | MORE INFO
----`,
-			expected: nil,
-		},
-		{
-			name: "parses audio format with CH",
-			input: `ID  EXT   RESOLUTION FPS CH |   FILESIZE    TBR PROTO | VCODEC           VBR ACODEC      ABR ASR | MORE INFO
----
-139 m4a   audio only      2 |    1.24MiB    49k https | audio only           mp4a.40.5   49k 22k [en] | low, m4a_dash`,
-			expected: []table.Row{
-				{"139", "m4a", "audio only", "", "2", "1.24MiB", "49k", "https", "audio only", "mp4a.40.5", "49k", "22k", "[en]", "low, m4a_dash"},
-			},
-		},
-		{
-			name: "parses multiple rows",
-			input: `ID  EXT   RESOLUTION FPS CH |   FILESIZE    TBR PROTO | VCODEC  VBR ACODEC  ABR ASR | MORE INFO
----
-139 m4a   audio only      2 |    1.24MiB    49k https | audio only  mp4a.40.5 49k 22k | low
-140 m4a   audio only      2 |    3.29MiB   130k https | audio only  mp4a.40.2 130k 44k | medium`,
-			expected: []table.Row{
-				{"139", "m4a", "audio only", "", "2", "1.24MiB", "49k", "https", "audio only", "", "mp4a.40.5", "49k", "22k", "low"},
-				{"140", "m4a", "audio only", "", "2", "3.29MiB", "130k", "https", "audio only", "", "mp4a.40.2", "130k", "44k", "medium"},
-			},
-		},
-		{
-			name: "skips empty lines",
-			input: `ID  EXT   RESOLUTION FPS CH |   FILESIZE    TBR PROTO | VCODEC  VBR ACODEC  ABR ASR | MORE INFO
----
+func assertEqual(t *testing.T, field, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("%s: got %q, want %q", field, got, want)
+	}
+}
 
-139 m4a   audio only      2 |    1.24MiB    49k https | audio only  mp4a.40.5 49k 22k | low
-
-140 m4a   audio only      2 |    3.29MiB   130k https | audio only  mp4a.40.2 130k 44k | medium`,
-			expected: []table.Row{
-				{"139", "m4a", "audio only", "", "2", "1.24MiB", "49k", "https", "audio only", "", "mp4a.40.5", "49k", "22k", "low"},
-				{"140", "m4a", "audio only", "", "2", "3.29MiB", "130k", "https", "audio only", "", "mp4a.40.2", "130k", "44k", "medium"},
-			},
-		},
+func TestFormatsToRows_AudioOnly(t *testing.T) {
+	formats := []*ytdlp.ExtractedFormat{
 		{
-			name: "parses video format with FPS",
-			input: `ID  EXT   RESOLUTION FPS CH |   FILESIZE    TBR PROTO | VCODEC  VBR ACODEC  ABR ASR | MORE INFO
----
-137 mp4  1920x1080       30    |    ~5MiB    128k https | avc1.64001f 128k mp4a.40.2 128k 44k | 1080p`,
-			expected: []table.Row{
-				{"137", "mp4", "1920x1080", "30", "", "~5MiB", "128k", "https", "avc1.64001f", "128k", "mp4a.40.2", "128k", "44k", "1080p"},
-			},
-		},
-		{
-			name: "Unicode pipe works",
-			input: `ID  EXT   RESOLUTION FPS CH │   FILESIZE    TBR PROTO │ VCODEC  VBR ACODEC  ABR ASR │ MORE INFO
----
-139 m4a   audio only      2 │    1.24MiB    49k https │ audio only  mp4a.40.5 49k 22k │ low`,
-			expected: []table.Row{
-				{"139", "m4a", "audio only", "", "2", "1.24MiB", "49k", "https", "audio only", "", "mp4a.40.5", "49k", "22k", "low"},
-			},
+			FormatID:      ptr("139"),
+			Extension:     ptr("m4a"),
+			Resolution:    ptr("audio only"),
+			AudioChannels: ptr(2.0),
+			FileSize:      ptr(1300234),
+			TBR:           ptr(49.0),
+			Protocol:      ptr("https"),
+			ACodec:        ptr("mp4a.40.5"),
+			ABR:           ptr(49.0),
+			ASR:           ptr(22050.0),
+			FormatNote:    ptr("low"),
+			Language:      ptr("en"),
 		},
 	}
 
+	rows := formatsToRows(formats)
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 row, got %d", len(rows))
+	}
+
+	row := rows[0]
+	assertEqual(t, "ID", row[0], "139")
+	assertEqual(t, "EXT", row[1], "m4a")
+	assertEqual(t, "RES", row[2], "audio only")
+	assertEqual(t, "FPS", row[3], "")
+	assertEqual(t, "CH", row[4], "2")
+	assertEqual(t, "SIZE", row[5], "1.24MiB")
+	assertEqual(t, "TBR", row[6], "49k")
+	assertEqual(t, "PROTO", row[7], "https")
+	assertEqual(t, "VCODEC", row[8], "audio only")
+	assertEqual(t, "VBR", row[9], "")
+	assertEqual(t, "ACODEC", row[10], "mp4a.40.5")
+	assertEqual(t, "ABR", row[11], "49k")
+	assertEqual(t, "ASR", row[12], "22k")
+	assertEqual(t, "MORE INFO", row[13], "[en] low")
+}
+
+func TestFormatsToRows_VideoOnly(t *testing.T) {
+	formats := []*ytdlp.ExtractedFormat{
+		{
+			FormatID:   ptr("137"),
+			Extension:  ptr("mp4"),
+			Resolution: ptr("1920x1080"),
+			FPS:        ptr(25.0),
+			FileSize:   ptr(80899727),
+			TBR:        ptr(3038.0),
+			Protocol:   ptr("https"),
+			VCodec:     ptr("avc1.640028"),
+			VBR:        ptr(3038.0),
+			FormatNote: ptr("1080p"),
+		},
+	}
+
+	rows := formatsToRows(formats)
+	row := rows[0]
+	assertEqual(t, "VCODEC", row[8], "avc1.640028")
+	assertEqual(t, "ACODEC", row[10], "video only")
+	assertEqual(t, "FPS", row[3], "25")
+	assertEqual(t, "SIZE", row[5], "77.15MiB")
+	assertEqual(t, "MORE INFO", row[13], "1080p")
+}
+
+func TestFormatsToRows_Combined(t *testing.T) {
+	formats := []*ytdlp.ExtractedFormat{
+		{
+			FormatID:       ptr("18"),
+			Extension:      ptr("mp4"),
+			Resolution:     ptr("640x360"),
+			FPS:            ptr(25.0),
+			AudioChannels:  ptr(2.0),
+			FileSizeApprox: ptr(11826381),
+			TBR:            ptr(444.0),
+			Protocol:       ptr("https"),
+			VCodec:         ptr("avc1.42001E"),
+			ACodec:         ptr("mp4a.40.2"),
+			ASR:            ptr(44100.0),
+			FormatNote:     ptr("360p"),
+			Language:       ptr("en"),
+		},
+	}
+
+	rows := formatsToRows(formats)
+	row := rows[0]
+	assertEqual(t, "VCODEC", row[8], "avc1.42001E")
+	assertEqual(t, "ACODEC", row[10], "mp4a.40.2")
+	assertEqual(t, "SIZE", row[5], "~ 11.28MiB")
+	assertEqual(t, "ASR", row[12], "44k")
+	assertEqual(t, "MORE INFO", row[13], "[en] 360p")
+}
+
+func TestFormatsToRows_Storyboard(t *testing.T) {
+	formats := []*ytdlp.ExtractedFormat{
+		{
+			FormatID:   ptr("sb3"),
+			Extension:  ptr("mhtml"),
+			Resolution: ptr("48x27"),
+			FPS:        ptr(0.0),
+			Protocol:   ptr("mhtml"),
+			FormatNote: ptr("storyboard"),
+		},
+	}
+
+	rows := formatsToRows(formats)
+	row := rows[0]
+	assertEqual(t, "FPS", row[3], "0")
+	assertEqual(t, "VCODEC", row[8], "")
+	assertEqual(t, "ACODEC", row[10], "")
+	assertEqual(t, "MORE INFO", row[13], "storyboard")
+}
+
+func TestFormatsToRows_Empty(t *testing.T) {
+	rows := formatsToRows(nil)
+	if len(rows) != 0 {
+		t.Errorf("expected 0 rows, got %d", len(rows))
+	}
+}
+
+func TestHumanizeBytes(t *testing.T) {
+	tests := []struct {
+		bytes  int
+		approx bool
+		want   string
+	}{
+		{1300234, false, "1.24MiB"},
+		{11826381, true, "~ 11.28MiB"},
+		{80899727, false, "77.15MiB"},
+		{1073741824, false, "1.00GiB"},
+		{512000, false, "500.00KiB"},
+		{500, false, "500B"},
+		{0, false, "0B"},
+	}
+
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := parseFormatsTable(tt.input)
-			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("parseFormatsTable() = %v, want %v", got, tt.expected)
+		t.Run(tt.want, func(t *testing.T) {
+			got := humanizeBytes(tt.bytes, tt.approx)
+			if got != tt.want {
+				t.Errorf("humanizeBytes(%d, %v) = %q, want %q", tt.bytes, tt.approx, got, tt.want)
 			}
 		})
 	}
 }
 
-func TestParseSection1(t *testing.T) {
-	tests := []struct {
-		name                                      string
-		input                                     string
-		wantID, wantExt, wantRes, wantFPS, wantCH string
-	}{
-		{"video with FPS", "sb3 mhtml 48x27        0    ", "sb3", "mhtml", "48x27", "0", ""},
-		{"audio with CH", "139 m4a   audio only      2 ", "139", "m4a", "audio only", "", "2"},
-		{"video 1920x1080 30fps", "137 mp4 1920x1080 30", "137", "mp4", "1920x1080", "30", ""},
-		{"too few fields", "id", "", "", "", "", ""},
-		{"resolution only", "sb0 mhtml 320x180 1", "sb0", "mhtml", "320x180", "1", ""},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			id, ext, res, fps, ch := parseSection1(tt.input)
-			if id != tt.wantID || ext != tt.wantExt || res != tt.wantRes || fps != tt.wantFPS || ch != tt.wantCH {
-				t.Errorf("parseSection1(%q) = (%q, %q, %q, %q, %q), want (%q, %q, %q, %q, %q)",
-					tt.input, id, ext, res, fps, ch, tt.wantID, tt.wantExt, tt.wantRes, tt.wantFPS, tt.wantCH)
-			}
-		})
-	}
+func TestFormatBitrate(t *testing.T) {
+	assertEqual(t, "nil", formatBitrate(nil), "")
+	assertEqual(t, "zero", formatBitrate(ptr(0.0)), "")
+	assertEqual(t, "49", formatBitrate(ptr(49.0)), "49k")
+	assertEqual(t, "3038", formatBitrate(ptr(3038.0)), "3038k")
 }
 
-func TestParseSection2(t *testing.T) {
-	tests := []struct {
-		name                             string
-		input                            string
-		wantFilesize, wantTBR, wantProto string
-	}{
-		{"three fields", "   1.24MiB    49k https ", "1.24MiB", "49k", "https"},
-		{"empty section", "                   mhtml ", "", "", "mhtml"},
-		{"two fields", "  ~5MiB 128k", "~5MiB", "128k", ""},
-		{"one field", "  mhtml", "", "", "mhtml"},
-		{"empty", "", "", "", ""},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fs, tbr, proto := parseSection2(tt.input)
-			if fs != tt.wantFilesize || tbr != tt.wantTBR || proto != tt.wantProto {
-				t.Errorf("parseSection2(%q) = (%q, %q, %q), want (%q, %q, %q)",
-					tt.input, fs, tbr, proto, tt.wantFilesize, tt.wantTBR, tt.wantProto)
-			}
-		})
-	}
+func TestFormatSampleRate(t *testing.T) {
+	assertEqual(t, "nil", formatSampleRate(nil), "")
+	assertEqual(t, "zero", formatSampleRate(ptr(0.0)), "")
+	assertEqual(t, "22050", formatSampleRate(ptr(22050.0)), "22k")
+	assertEqual(t, "44100", formatSampleRate(ptr(44100.0)), "44k")
+	assertEqual(t, "48000", formatSampleRate(ptr(48000.0)), "48k")
 }
 
-func TestParseSection3(t *testing.T) {
-	tests := []struct {
-		name                                              string
-		input                                             string
-		wantVcodec, wantVBR, wantAcodec, wantABR, wantASR string
-	}{
-		{"single word", " images ", "images", "", "", "", ""},
-		{"audio only with codecs", " audio only           mp4a.40.5   49k 22k ", "audio only", "", "mp4a.40.5", "49k", "22k"},
-		{"five fields", " avc1.64001f 128k mp4a.40.2 128k 44k ", "avc1.64001f", "128k", "mp4a.40.2", "128k", "44k"},
-		{"six fields (vcodec multi-word)", " audio only mp4a.40.5 49k 22k [en] ", "audio only", "mp4a.40.5", "49k", "22k", "[en]"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			vc, vbr, ac, abr, asr := parseSection3(tt.input)
-			if vc != tt.wantVcodec || vbr != tt.wantVBR || ac != tt.wantAcodec || abr != tt.wantABR || asr != tt.wantASR {
-				t.Errorf("parseSection3(%q) = (%q, %q, %q, %q, %q), want (%q, %q, %q, %q, %q)",
-					tt.input, vc, vbr, ac, abr, asr, tt.wantVcodec, tt.wantVBR, tt.wantAcodec, tt.wantABR, tt.wantASR)
-			}
-		})
-	}
-}
-
-func TestSplitByPipe(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected []string
-	}{
-		{"Unicode pipe", "a│b│c", []string{"a", "b", "c"}},
-		{"ASCII pipe", "a|b|c", []string{"a", "b", "c"}},
-		{"mixed", "a│b|c", []string{"a", "b", "c"}},
-		{"no pipe", "a b c", []string{"a b c"}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := splitByPipe(tt.input)
-			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("splitByPipe(%q) = %v, want %v", tt.input, got, tt.expected)
-			}
-		})
-	}
-}
-
-// TestParseFormatsTableFromStdout verifies parsing of actual yt-dlp output (stdout.txt).
-func TestParseFormatsTableFromStdout(t *testing.T) {
-	raw, err := os.ReadFile("stdout.txt")
-	if err != nil {
-		t.Skip("stdout.txt not found, skipping")
-	}
-	rows := parseFormatsTable(string(raw))
-	if len(rows) == 0 {
-		t.Error("expected rows from stdout.txt, got none")
-	}
-	// Verify first row (storyboard)
-	if len(rows[0]) < 14 {
-		t.Errorf("row 0 has %d columns, want 14", len(rows[0]))
-	}
-	if rows[0][0] != "sb3" || rows[0][2] != "48x27" || rows[0][5] != "" || rows[0][13] != "storyboard" {
-		t.Errorf("row 0: got ID=%q RES=%q MORE=%q", rows[0][0], rows[0][2], rows[0][13])
-	}
-	if rows[4][12] != "22k" || rows[4][13] != "[en] low, m4a_dash" {
-		t.Errorf("row 4: got ASR=%q", rows[4][12])
-	}
-	if rows[9][10] != "video only" {
-		t.Errorf("row 9: got ACODEC=%q", rows[9][10])
-	}
-	if rows[18][5] != "≈ 11.28MiB" {
-		t.Errorf("row 18: got Filesize=%q", rows[18][5])
-	}
-	if rows[18][10] != "mp4a.40.2" {
-		t.Errorf("row 18: got ACODEC=%q", rows[18][10])
-	}
-	if rows[16][10] != "mp4a.40.2" {
-		t.Errorf("row 18: got ACODEC=%q", rows[18][10])
-	}
-	if rows[18][12] != "44k" {
-		t.Errorf("row 18: got ASR=%q", rows[18][12])
-	}
-	// Find and verify 139 audio row (comes after sb3, sb2, sb1, sb0)
-	var found139 bool
-	for _, row := range rows {
-		if len(row) >= 14 && row[0] == "139" {
-			if row[2] != "audio only" || row[13] != "[en] low, m4a_dash" {
-				t.Errorf("row 139: got RES=%q MORE=%q", row[2], row[13])
-			}
-			found139 = true
-			break
-		}
-	}
-	if !found139 {
-		t.Error("expected to find format 139 in parsed rows")
-	}
-}
-
-func TestIsNumeric(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected bool
-	}{
-		{"0", true},
-		{"123", true},
-		{"2", true},
-		{"", false},
-		{"12k", false},
-		{"1.24", false},
-		{"abc", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			got := isNumeric(tt.input)
-			if got != tt.expected {
-				t.Errorf("isNumeric(%q) = %v, want %v", tt.input, got, tt.expected)
-			}
-		})
-	}
+func TestFormatMoreInfo(t *testing.T) {
+	assertEqual(t, "both", formatMoreInfo(ptr("low"), ptr("en")), "[en] low")
+	assertEqual(t, "note only", formatMoreInfo(ptr("1080p"), nil), "1080p")
+	assertEqual(t, "lang only", formatMoreInfo(nil, ptr("en")), "[en]")
+	assertEqual(t, "neither", formatMoreInfo(nil, nil), "")
 }

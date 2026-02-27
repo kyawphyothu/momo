@@ -23,6 +23,7 @@ type Model struct {
 	FormatsTable   table.Model
 	FormatsLoaded  bool
 	FormatsLoading bool
+	FormatsErr     error
 }
 
 func InitialModel() Model {
@@ -80,6 +81,7 @@ func InitialModel() Model {
 		FormatsTable:          t,
 		FormatsLoaded:         false,
 		FormatsLoading:        false,
+		FormatsErr:            nil,
 	}
 }
 

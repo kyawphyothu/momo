@@ -2,6 +2,7 @@ package program
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
@@ -16,8 +17,8 @@ func InstallYtdlpCmd() tea.Cmd {
 	}
 }
 
-// fakeFetchFormats enables a 5s fake fetch for testing the loading UI.
-const fakeFetchFormats = true
+// fakeFetchFormats enables a 1s fake fetch for testing the loading UI.
+const fakeFetchFormats = false
 
 func FetchFormatsCmd(url string) tea.Cmd {
 	if url == "" {
@@ -26,60 +27,46 @@ func FetchFormatsCmd(url string) tea.Cmd {
 	return func() tea.Msg {
 		if fakeFetchFormats {
 			time.Sleep(1 * time.Second)
-			// fake := "ID  EXT   RESOLUTION FPS CH │   FILESIZE    TBR PROTO │ VCODEC           VBR ACODEC      ABR ASR MORE INFO\n" +
-			// 	"───────────────────────────────────────────────────────────────────────────────────────────────────────\n" +
-			// 	"139 m4a   audio only      2 │    1.24MiB    49k https │ audio only           mp4a.40.5   49k 22k [en] low, m4a_dash\n" +
-			// 	"140 m4a   audio only      2 │    3.29MiB   130k https │ audio only           mp4a.40.2  130k 44k [en] medium, m4a_dash\n" +
-			// 	"137 mp4  1920x1080       30    │    ~5MiB    128k https │ avc1.64001f    128k mp4a.40.2  128k 44k 1080p\n"
-			fake := `
-ID  EXT   RESOLUTION FPS CH |   FILESIZE    TBR PROTO | VCODEC           VBR ACODEC      ABR ASR MORE INFO
------------------------------------------------------------------------------------------------------------------------
-sb3 mhtml 48x27        0    |                   mhtml | images                                   storyboard
-sb2 mhtml 80x45        1    |                   mhtml | images                                   storyboard
-sb1 mhtml 160x90       1    |                   mhtml | images                                   storyboard
-sb0 mhtml 320x180      1    |                   mhtml | images                                   storyboard
-139 m4a   audio only      2 |    1.24MiB    49k https | audio only           mp4a.40.5   49k 22k [en] low, m4a_dash
-249 webm  audio only      2 |    1.17MiB    46k https | audio only           opus        46k 48k [en] low, webm_dash
-140 m4a   audio only      2 |    3.29MiB   130k https | audio only           mp4a.40.2  130k 44k [en] medium, m4a_dash
-251 webm  audio only      2 |    3.27MiB   129k https | audio only           opus       129k 48k [en] medium, webm_dash
-91  mp4   256x144     25    | ~  4.27MiB   168k m3u8  | avc1.4D400C          mp4a.40.5           [en]
-160 mp4   256x144     25    |    1.96MiB    77k https | avc1.4d400c      77k video only          144p, mp4_dash
-278 webm  256x144     25    |    1.47MiB    58k https | vp9              58k video only          144p, webm_dash
-394 mp4   256x144     25    |    1.44MiB    57k https | av01.0.00M.08    57k video only          144p, mp4_dash
-92  mp4   426x240     25    | ~  7.64MiB   301k m3u8  | avc1.4D4015          mp4a.40.5           [en]
-133 mp4   426x240     25    |    4.11MiB   162k https | avc1.4d4015     162k video only          240p, mp4_dash
-242 webm  426x240     25    |    2.58MiB   102k https | vp9             102k video only          240p, webm_dash
-395 mp4   426x240     25    |    2.95MiB   116k https | av01.0.00M.08   116k video only          240p, mp4_dash
-93  mp4   640x360     25    | ~ 15.50MiB   611k m3u8  | avc1.4D401E          mp4a.40.2           [en]
-134 mp4   640x360     25    |    8.00MiB   315k https | avc1.4d401e     315k video only          360p, mp4_dash
-18  mp4   640x360     25  2 | ≈ 11.28MiB   444k https | avc1.42001E          mp4a.40.2       44k [en] 360p
-243 webm  640x360     25    |    5.74MiB   226k https | vp9             226k video only          360p, webm_dash
-396 mp4   640x360     25    |    5.42MiB   214k https | av01.0.01M.08   214k video only          360p, mp4_dash
-94  mp4   854x480     25    | ~ 21.90MiB   863k m3u8  | avc1.4D401E          mp4a.40.2           [en]
-135 mp4   854x480     25    |   13.45MiB   530k https | avc1.4d401e     530k video only          480p, mp4_dash
-244 webm  854x480     25    |    8.95MiB   352k https | vp9             352k video only          480p, webm_dash
-397 mp4   854x480     25    |    9.42MiB   371k https | av01.0.04M.08   371k video only          480p, mp4_dash
-95  mp4   1280x720    25    | ~ 31.70MiB  1248k m3u8  | avc1.4D401F          mp4a.40.2           [en]
-136 mp4   1280x720    25    |   25.23MiB   993k https | avc1.4d401f     993k video only          720p, mp4_dash
-247 webm  1280x720    25    |   16.87MiB   664k https | vp9             664k video only          720p, webm_dash
-398 mp4   1280x720    25    |   16.78MiB   661k https | av01.0.05M.08   661k video only          720p, mp4_dash
-96  mp4   1920x1080   25    | ~119.04MiB  4688k m3u8  | avc1.640028          mp4a.40.2           [en]
-137 mp4   1920x1080   25    |   77.16MiB  3038k https | avc1.640028    3038k video only          1080p, mp4_dash
-248 webm  1920x1080   25    |   29.42MiB  1158k https | vp9            1158k video only          1080p, webm_dash
-399 mp4   1920x1080   25    |   29.01MiB  1142k https | av01.0.08M.08  1142k video only          1080p, mp4_dash
-271 webm  2560x1440   25    |  144.10MiB  5674k https | vp9            5674k video only          1440p, webm_dash
-400 mp4   2560x1440   25    |  116.51MiB  4588k https | av01.0.12M.08  4588k video only          1440p, mp4_dash
-313 webm  3840x2160   25    |  342.00MiB 13466k https | vp9           13466k video only          2160p, webm_dash
-401 mp4   3840x2160   25    |  229.20MiB  9025k https | av01.0.12M.08  9025k video only          2160p, mp4_dash`
-			return FormatsLoadedMsg{Table: fake}
+			return FormatsLoadedMsg{Formats: fakeFormats()}
 		}
 
 		ctx := context.Background()
-		dl := ytdlp.New().Print("formats_table").NoWarnings()
+		dl := ytdlp.New().DumpJSON().NoWarnings()
 		res, err := dl.Run(ctx, url)
 		if err != nil {
 			return FormatsLoadedMsg{Err: err}
 		}
-		return FormatsLoadedMsg{Table: res.Stdout}
+		info, err := res.GetExtractedInfo()
+		if err != nil {
+			return FormatsLoadedMsg{Err: err}
+		}
+		if len(info) == 0 {
+			return FormatsLoadedMsg{Err: fmt.Errorf("no info returned by yt-dlp")}
+		}
+		if len(info[0].Formats) == 0 {
+			return FormatsLoadedMsg{Err: fmt.Errorf("no formats found")}
+		}
+		return FormatsLoadedMsg{Formats: info[0].Formats}
+	}
+}
+
+func fakeFormats() []*ytdlp.ExtractedFormat {
+	return []*ytdlp.ExtractedFormat{
+		{FormatID: ptr("sb3"), Extension: ptr("mhtml"), Resolution: ptr("48x27"), FPS: ptr(0.0), Protocol: ptr("mhtml"), FormatNote: ptr("storyboard")},
+		{FormatID: ptr("sb0"), Extension: ptr("mhtml"), Resolution: ptr("320x180"), FPS: ptr(1.0), Protocol: ptr("mhtml"), FormatNote: ptr("storyboard")},
+		{FormatID: ptr("139"), Extension: ptr("m4a"), Resolution: ptr("audio only"), AudioChannels: ptr(2.0), FileSize: ptr(1300234), TBR: ptr(49.0), Protocol: ptr("https"), ACodec: ptr("mp4a.40.5"), ABR: ptr(49.0), ASR: ptr(22050.0), FormatNote: ptr("low"), Language: ptr("en")},
+		{FormatID: ptr("249"), Extension: ptr("webm"), Resolution: ptr("audio only"), AudioChannels: ptr(2.0), FileSize: ptr(1226833), TBR: ptr(46.0), Protocol: ptr("https"), ACodec: ptr("opus"), ABR: ptr(46.0), ASR: ptr(48000.0), FormatNote: ptr("low"), Language: ptr("en")},
+		{FormatID: ptr("140"), Extension: ptr("m4a"), Resolution: ptr("audio only"), AudioChannels: ptr(2.0), FileSize: ptr(3450060), TBR: ptr(130.0), Protocol: ptr("https"), ACodec: ptr("mp4a.40.2"), ABR: ptr(130.0), ASR: ptr(44100.0), FormatNote: ptr("medium"), Language: ptr("en")},
+		{FormatID: ptr("251"), Extension: ptr("webm"), Resolution: ptr("audio only"), AudioChannels: ptr(2.0), FileSize: ptr(3429236), TBR: ptr(129.0), Protocol: ptr("https"), ACodec: ptr("opus"), ABR: ptr(129.0), ASR: ptr(48000.0), FormatNote: ptr("medium"), Language: ptr("en")},
+		{FormatID: ptr("160"), Extension: ptr("mp4"), Resolution: ptr("256x144"), FPS: ptr(25.0), FileSize: ptr(2055208), TBR: ptr(77.0), Protocol: ptr("https"), VCodec: ptr("avc1.4d400c"), VBR: ptr(77.0), FormatNote: ptr("144p")},
+		{FormatID: ptr("278"), Extension: ptr("webm"), Resolution: ptr("256x144"), FPS: ptr(25.0), FileSize: ptr(1541406), TBR: ptr(58.0), Protocol: ptr("https"), VCodec: ptr("vp9"), VBR: ptr(58.0), FormatNote: ptr("144p")},
+		{FormatID: ptr("134"), Extension: ptr("mp4"), Resolution: ptr("640x360"), FPS: ptr(25.0), FileSize: ptr(8388608), TBR: ptr(315.0), Protocol: ptr("https"), VCodec: ptr("avc1.4d401e"), VBR: ptr(315.0), FormatNote: ptr("360p")},
+		{FormatID: ptr("18"), Extension: ptr("mp4"), Resolution: ptr("640x360"), FPS: ptr(25.0), AudioChannels: ptr(2.0), FileSizeApprox: ptr(11826381), TBR: ptr(444.0), Protocol: ptr("https"), VCodec: ptr("avc1.42001E"), ACodec: ptr("mp4a.40.2"), ASR: ptr(44100.0), FormatNote: ptr("360p"), Language: ptr("en")},
+		{FormatID: ptr("135"), Extension: ptr("mp4"), Resolution: ptr("854x480"), FPS: ptr(25.0), FileSize: ptr(14104780), TBR: ptr(530.0), Protocol: ptr("https"), VCodec: ptr("avc1.4d401e"), VBR: ptr(530.0), FormatNote: ptr("480p")},
+		{FormatID: ptr("136"), Extension: ptr("mp4"), Resolution: ptr("1280x720"), FPS: ptr(25.0), FileSize: ptr(26455245), TBR: ptr(993.0), Protocol: ptr("https"), VCodec: ptr("avc1.4d401f"), VBR: ptr(993.0), FormatNote: ptr("720p")},
+		{FormatID: ptr("137"), Extension: ptr("mp4"), Resolution: ptr("1920x1080"), FPS: ptr(25.0), FileSize: ptr(80899727), TBR: ptr(3038.0), Protocol: ptr("https"), VCodec: ptr("avc1.640028"), VBR: ptr(3038.0), FormatNote: ptr("1080p")},
+		{FormatID: ptr("248"), Extension: ptr("webm"), Resolution: ptr("1920x1080"), FPS: ptr(25.0), FileSize: ptr(30849163), TBR: ptr(1158.0), Protocol: ptr("https"), VCodec: ptr("vp9"), VBR: ptr(1158.0), FormatNote: ptr("1080p")},
+		{FormatID: ptr("271"), Extension: ptr("webm"), Resolution: ptr("2560x1440"), FPS: ptr(25.0), FileSize: ptr(151080550), TBR: ptr(5674.0), Protocol: ptr("https"), VCodec: ptr("vp9"), VBR: ptr(5674.0), FormatNote: ptr("1440p")},
+		{FormatID: ptr("401"), Extension: ptr("mp4"), Resolution: ptr("3840x2160"), FPS: ptr(25.0), FileSize: ptr(240338534), TBR: ptr(9025.0), Protocol: ptr("https"), VCodec: ptr("av01.0.12M.08"), VBR: ptr(9025.0), FormatNote: ptr("2160p")},
 	}
 }
