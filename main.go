@@ -28,6 +28,7 @@ func main() {
 	// fmt.Println("Stdout:")
 	// fmt.Println(res.Stdout)
 	// fmt.Println("GetExtractedInfo:")
+	// os.Exit(0)
 	// ext, err := res.GetExtractedInfo()
 	// if err != nil {
 	// 	panic(err)

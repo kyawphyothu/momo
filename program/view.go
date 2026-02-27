@@ -28,7 +28,7 @@ func (m Model) View() tea.View {
 	if m.FormatsLoading {
 		mainContent = m.Spinner.View()
 	} else if m.FormatsLoaded {
-		mainContent = m.FormatsViewport.View()
+		mainContent = m.FormatsTable.View()
 	} else {
 		mainContent = lipgloss.NewStyle().Foreground(Primary).Render("Hello, World!")
 	}

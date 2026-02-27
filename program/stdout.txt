@@ -1,37 +1,3 @@
-package program
-
-import (
-	"context"
-	"time"
-
-	tea "charm.land/bubbletea/v2"
-	"github.com/lrstanley/go-ytdlp"
-)
-
-// InstallYtdlpCmd runs ytdlp.Install in the background and sends YtdlpInstallDoneMsg when finished.
-func InstallYtdlpCmd() tea.Cmd {
-	return func() tea.Msg {
-		_, err := ytdlp.Install(context.TODO(), nil)
-		return YtdlpInstallDoneMsg{Err: err}
-	}
-}
-
-// fakeFetchFormats enables a 5s fake fetch for testing the loading UI.
-const fakeFetchFormats = true
-
-func FetchFormatsCmd(url string) tea.Cmd {
-	if url == "" {
-		url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-	}
-	return func() tea.Msg {
-		if fakeFetchFormats {
-			time.Sleep(1 * time.Second)
-			// fake := "ID  EXT   RESOLUTION FPS CH │   FILESIZE    TBR PROTO │ VCODEC           VBR ACODEC      ABR ASR MORE INFO\n" +
-			// 	"───────────────────────────────────────────────────────────────────────────────────────────────────────\n" +
-			// 	"139 m4a   audio only      2 │    1.24MiB    49k https │ audio only           mp4a.40.5   49k 22k [en] low, m4a_dash\n" +
-			// 	"140 m4a   audio only      2 │    3.29MiB   130k https │ audio only           mp4a.40.2  130k 44k [en] medium, m4a_dash\n" +
-			// 	"137 mp4  1920x1080       30    │    ~5MiB    128k https │ avc1.64001f    128k mp4a.40.2  128k 44k 1080p\n"
-			fake := `
 ID  EXT   RESOLUTION FPS CH |   FILESIZE    TBR PROTO | VCODEC           VBR ACODEC      ABR ASR MORE INFO
 -----------------------------------------------------------------------------------------------------------------------
 sb3 mhtml 48x27        0    |                   mhtml | images                                   storyboard
@@ -70,16 +36,4 @@ sb0 mhtml 320x180      1    |                   mhtml | images                  
 271 webm  2560x1440   25    |  144.10MiB  5674k https | vp9            5674k video only          1440p, webm_dash
 400 mp4   2560x1440   25    |  116.51MiB  4588k https | av01.0.12M.08  4588k video only          1440p, mp4_dash
 313 webm  3840x2160   25    |  342.00MiB 13466k https | vp9           13466k video only          2160p, webm_dash
-401 mp4   3840x2160   25    |  229.20MiB  9025k https | av01.0.12M.08  9025k video only          2160p, mp4_dash`
-			return FormatsLoadedMsg{Table: fake}
-		}
-
-		ctx := context.Background()
-		dl := ytdlp.New().Print("formats_table").NoWarnings()
-		res, err := dl.Run(ctx, url)
-		if err != nil {
-			return FormatsLoadedMsg{Err: err}
-		}
-		return FormatsLoadedMsg{Table: res.Stdout}
-	}
-}
+401 mp4   3840x2160   25    |  229.20MiB  9025k https | av01.0.12M.08  9025k video only          2160p, mp4_dash

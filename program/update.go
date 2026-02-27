@@ -14,8 +14,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
-		m.FormatsViewport.SetWidth(msg.Width)
-		m.FormatsViewport.SetHeight(msg.Height)
+		m.FormatsTable.SetWidth(msg.Width)
+		m.FormatsTable.SetHeight(msg.Height - 2)
 		return m, nil
 
 	case tea.PasteMsg:
@@ -26,11 +26,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// handle error (e.g. store in model, show in view)
 			return m, nil
 		}
+		rows := formatFormatsRowsForDisplay(parseFormatsTable(msg.Table))
 		m.FormatsLoaded = true
 		m.FormatsLoading = false
-		m.FormatsViewport.SetWidth(m.Width)
-		m.FormatsViewport.SetHeight(m.Height)
-		m.FormatsViewport.SetContent(msg.Table)
+		m.FormatsTable.SetRows(rows)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -48,7 +47,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			var cmd tea.Cmd
-			m.FormatsViewport, cmd = m.FormatsViewport.Update(msg)
+			m.FormatsTable, cmd = m.FormatsTable.Update(msg)
 			return m, cmd
 		}
 
