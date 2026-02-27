@@ -273,8 +273,14 @@ func parseSection3(s string) (vcodec, vbr, acodec, abr, asr string) {
 	case 1:
 		return fields[0], "", "", "", ""
 	case 2:
+		if !looksLikeBitrate(fields[1]) {
+			return fields[0], "", fields[1], "", ""
+		}
 		return fields[0], fields[1], "", "", ""
 	case 3:
+		if !looksLikeBitrate(fields[1]) {
+			return fields[0], "", fields[1], "", fields[2]
+		}
 		return fields[0], fields[1], fields[2], "", ""
 	case 4:
 		return fields[0], fields[1], fields[2], fields[3], ""
@@ -286,6 +292,13 @@ func parseSection3(s string) (vcodec, vbr, acodec, abr, asr string) {
 		asr = fields[len(fields)-1]
 		return
 	}
+}
+
+func looksLikeBitrate(s string) bool {
+	if len(s) < 2 || s[len(s)-1] != 'k' {
+		return false
+	}
+	return isNumeric(s[:len(s)-1])
 }
 
 func isNumeric(s string) bool {

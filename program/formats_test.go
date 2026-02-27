@@ -212,6 +212,15 @@ func TestParseFormatsTableFromStdout(t *testing.T) {
 	if rows[18][5] != "≈ 11.28MiB" {
 		t.Errorf("row 18: got Filesize=%q", rows[18][5])
 	}
+	if rows[18][10] != "mp4a.40.2" {
+		t.Errorf("row 18: got ACODEC=%q", rows[18][10])
+	}
+	if rows[16][10] != "mp4a.40.2" {
+		t.Errorf("row 18: got ACODEC=%q", rows[18][10])
+	}
+	if rows[18][12] != "44k" {
+		t.Errorf("row 18: got ASR=%q", rows[18][12])
+	}
 	// Find and verify 139 audio row (comes after sb3, sb2, sb1, sb0)
 	var found139 bool
 	for _, row := range rows {
